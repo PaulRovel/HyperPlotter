@@ -8,19 +8,28 @@ class HyperPlotter():
         self.fig=plt.figure()
         gridSpec=self.fig.add_gridspec()
         self.menufig,self.plotfig=self.fig.subfigures(1,2,width_ratios=(3,7))
-        self.axes=[] #Theses are the axes for plotting
-        self.currentAxe=0
+        self.plots=[]
+        
+        self.currentPlot=None
     
-    def addAxes(self):
-        self.axes.append(self.plotfig.add_subplot())
+    def addPlot(self):
+        self.plots.append(Plot(self.plotfig,len(self.plots)))
+        self.currentPlot=self.plots[-1]
 
     def show(self):
         plt.show()
-    
+
+class Plot():
+    def __init__(self,figure,plotIndex):
+        self.Ax2d=figure.add_subplot()
+        self.Ax3d=figure.add_subplot(projection='3d')
+        self.Ax3d.set_visible(False)
+        self.plotIndex=plotIndex
+
 if __name__=='__main__':
     plotter = HyperPlotter()
-    plotter.addAxes()
-    plotter.axes[0].plot([1,2,3],[2,3,1])
+    plotter.addPlot()
+    plotter.currentPlot.Ax2d.plot([1,2,3],[2,3,1])
     plotter.show()
 
 
