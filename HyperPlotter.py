@@ -10,7 +10,7 @@ class HyperPlotter():
         self.menufig,self.plotfig=self.fig.subfigures(1,2,width_ratios=(3,7))
         self.plots=[]
         
-        self.currentPlot=None
+        self.currentPlot:Plot
     
     def addPlot(self):
         self.plots.append(Plot(self.plotfig,len(self.plots)))
@@ -25,6 +25,15 @@ class Plot():
         self.Ax3d=figure.add_subplot(projection='3d')
         self.Ax3d.set_visible(False)
         self.plotIndex=plotIndex
+
+class MapPlottable():
+    def __init__(self,data:np.ndarray,**kwargs):
+        self.data=data
+        self.title= kwargs['title'] if 'title' in kwargs else 'Carte'
+        self.label= kwargs['label'] if 'label' in kwargs else self.title
+        self.cblabel= kwargs['cblabel'] if 'cblabel' in kwargs else ''
+        self.symdata= kwargs['symdata'] if 'symdata' in kwargs else False
+        self.vmax=kwargs['vmax'] if 'vmax' in kwargs else np.max(np.abs(np.nan_to_num(data)))
 
 if __name__=='__main__':
     plotter = HyperPlotter()
