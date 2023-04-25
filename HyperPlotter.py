@@ -132,12 +132,13 @@ class HyperPlotter():
 
 if __name__=='__main__':
     plotter = HyperPlotter()
-    plotter.addMapPlottable(MapPlottable(np.eye(10),title='test1'))
-    plotter.addMapPlottable(MapPlottable(np.linspace(-50,50,num=100).reshape((10,10)),title='test2',symdata=True))
+    #plotter.addMapPlottable(MapPlottable(np.eye(10),title='test1'))
+    #plotter.addMapPlottable(MapPlottable(np.linspace(-50,50,num=100).reshape((10,10)),title='test2',symdata=True))
     plotter.addScatterPlottable(ScatterPlottable([0,1,2,3],[3,2,1,0]))
     def draw(ax):
         ax.plot([0,1],[0,1])
         ax.text(0.5,0.5,'Hello it’s me !')
+        ax.annotate('Un autre test des familles',xy=(1,1))
     plotter.addCustomPlottable(CustomDisplayPlottable(drawFunc=draw))
     plotter.refreshMenu()
     plotter.show()
