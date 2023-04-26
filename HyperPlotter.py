@@ -25,10 +25,10 @@ class HyperPlotter():
         self.mapSelectionAxe=self.menufig.add_axes([0.,.5,1.,.5],facecolor=menucolor)
         self.scatterSelectionAxe = self.menufig.add_axes([0.,0.,1.,.5],facecolor=menucolor)
         self.customSelectionAxes = []
-        self.mapSelectionButton=None
-        self.scatterSelectionButton=None
+        self.mapSelectionButton:pltwid.RadioButtons=None
+        self.scatterSelectionButton:pltwid.CheckButtons=None
         self.dimSelectionAxe=self.menufig.add_axes([0.,.5,1.,.5],facecolor=menucolor)
-        self.dimSelectionButton=None
+        self.dimSelectionButton:pltwid.Button=None
 
     
     def addPlot(self):
