@@ -4,8 +4,8 @@ import matplotlib.widgets as pltwid
 import matplotlib
 from matplotlib import cm
 
-from Plottable import MapPlottable,ScatterPlottable,CustomPlottable,CustomDisplayPlottable
-from Plot import *
+from .Plottable import *
+from .Plot import *
 
 
 class HyperPlotter():
@@ -50,6 +50,20 @@ class HyperPlotter():
             print('CustomPlottable label already in use')
             raise KeyError
         self.customPlottables[custom.label]=custom
+    
+    def addPlottable(self,plottables):
+        if not hasattr(plottables,'__iter__'):
+            plottables = [plottables]
+        for plottable in plottables:
+            if isinstance(plottable,MapPlottable):
+                self.addMapPlottable(plottable)
+            elif isinstance(plottable,ScatterPlottable):
+                self.addScatterPlottable(plottable)
+            elif isinstance(plottable,CustomPlottable):
+                self.addCustomPlottable(plottable)
+            else:
+                print(plottable, 'does not seem to be plottable')
+                raise TypeError
     
 
     
@@ -111,7 +125,9 @@ class HyperPlotter():
             button = custom.refreshButtonFunc(ax=ax)#TODO : HERE add all intersting context !
             if custom.label not in self.currentPlot.customPlottableData:
                 self.currentPlot.customPlottableData[custom.label]=[]
-            def redirectToOnChangeFunc(data):
+            def redirectToOnChangeFunc(data,custom=custom): 
+                #Here the custom=custom is to force function closure to de-reference the custom value here (before the next loop iteration)
+                #Note that self is put in the closure after but it doesn’t matter much
                 custom.onChangeFunc(customPlottedData=self.currentPlot.customPlottableData[custom.label],ax=self.currentPlot.Ax2d,data=data) # TODO : Here add all relevant data
                 self.fig.canvas.draw()
 
@@ -120,6 +136,7 @@ class HyperPlotter():
                     button.on_clicked(redirectToOnChangeFunc)
             self.customSelectionAxes.append(ax)
             self.customSelectionButtons.append(button) 
+    
 
         
         

@@ -3,9 +3,9 @@ import matplotlib.pyplot as plt
 import matplotlib.widgets as pltwid
 import matplotlib.axes
 from matplotlib import cm
-from HyperPlotter import HyperPlotter
+from .HyperPlotter import *
 
-from Plottable import MapPlottable,ScatterPlottable,CustomPlottable
+from .Plottable import *
 
 symColorMap = matplotlib.colormaps['Spectral_r']
 symColorMap._segmentdata['blue'][5]=np.array([0.5,1.0,1.0])
@@ -13,7 +13,7 @@ symColorMap._segmentdata['blue'][6]=np.array([0.6,0.6,0.6])
 
 class Plot():
     
-    def __init__(self,hyperPlotter:HyperPlotter,plotIndex):
+    def __init__(self,hyperPlotter,plotIndex):
         self.Ax2d:matplotlib.axes.Axes=hyperPlotter.plotfig.add_subplot()
         self.Ax3d=hyperPlotter.plotfig.add_subplot(projection='3d')
         self.Ax3d.set_visible(False)
@@ -35,6 +35,7 @@ class Plot():
         else:
             self.MainImage.set_clim(vmin=np.min(np.nan_to_num(newMap.data)),vmax=np.max(np.nan_to_num(newMap.data)))
             self.MainImage.set_cmap('viridis')
+        self.colorbar.set_label(newMap.cblabel)
     
     def switchScatter(self,scatter:ScatterPlottable):
         if scatter.label in self.scatters:
