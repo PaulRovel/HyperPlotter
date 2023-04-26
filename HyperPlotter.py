@@ -27,6 +27,8 @@ class HyperPlotter():
         self.customSelectionAxes = []
         self.mapSelectionButton=None
         self.scatterSelectionButton=None
+        self.dimSelectionAxe=self.menufig.add_axes([0.,.5,1.,.5],facecolor=menucolor)
+        self.dimSelectionButton=None
 
     
     def addPlot(self):
@@ -68,25 +70,41 @@ class HyperPlotter():
 
     
     def refreshMenu(self):
-        self.mapSelectionAxe.remove()
-        self.scatterSelectionAxe.remove()
+        #**********************REMOVE THE MENU**********************************
+        if self.mapSelectionAxe:
+            self.mapSelectionAxe.remove()
+        if self.scatterSelectionAxe:
+            self.scatterSelectionAxe.remove()
+        if self.dimSelectionAxe:
+            self.dimSelectionAxe.remove()
         for ax in self.customSelectionAxes:
             ax.remove()
+        self.mapSelectionAxe=None
+        self.scatterSelectionAxe=None
+        self.dimSelectionAxe=None
         self.customSelectionAxes=[]
         self.customSelectionButtons=[]
+        self.mapSelectionButton=None
+        self.scatterSelectionButton=None
+        self.dimSelectionButton=None
 
-        totalLinesNumber=len(self.mapPlottables)+len(self.scatterPlottables)+len(self.customPlottables)+3 #3 Titles to add...
+        totalLinesNumber=len(self.mapPlottables)+len(self.scatterPlottables)*(not self.currentPlot.state3D)+len(self.customPlottables)*(not self.currentPlot.state3D)+3+1 #3 Titles to add 1 dim button
         linewidth=1/totalLinesNumber
 
         menucolor = 'lightgoldenrodyellow'
-
+        #=================================ADD THE MAP PLOTTABLES===============
         selectionWidth = linewidth*len(self.mapPlottables)
         bottom = 1 - linewidth - selectionWidth
         self.mapSelectionAxe = self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
         self.mapSelectionAxe.set_title('Cartes :')
         labels = [label for label in self.mapPlottables]
         if len(labels):
-            self.mapSelectionButton = pltwid.RadioButtons(ax=self.mapSelectionAxe,labels=labels)
+            try:
+                active=labels.index(self.currentPlot.stateMapPlottable) #Here we assume the state has been set correctly
+            except ValueError: #If not set then we set it !
+                self.currentPlot.stateMapPlottable=labels[0]
+                active=0
+            self.mapSelectionButton = pltwid.RadioButtons(ax=self.mapSelectionAxe,labels=labels,active=active)
         else :
             self.mapSelectionButton = None
 
@@ -98,44 +116,57 @@ class HyperPlotter():
             self.mapSelectionButton.on_clicked(mapButtonClick)
         except:
             pass
+        #=================================ADD THE SCATTER PLOTTABLES===============
+        if not self.currentPlot.state3D:
+            selectionWidth = linewidth*len(self.scatterPlottables)
+            bottom += - linewidth - selectionWidth
+            self.scatterSelectionAxe = self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
+            self.scatterSelectionAxe.set_title('Données :')
+            labels = [label for label in self.scatterPlottables]
+            if len(labels):
+                actives=[label in self.currentPlot.stateScatterPlottable for label in labels]
+                self.scatterSelectionButton= pltwid.CheckButtons(ax=self.scatterSelectionAxe,labels=labels,actives=actives)
+            else:
+                self.scatterSelectionButton=None
+            def scatterButtonClick(label):
+                if label in self.scatterPlottables:
+                    self.currentPlot.switchScatter(self.scatterPlottables[label])
+                    self.fig.canvas.draw()
 
-        selectionWidth = linewidth*len(self.scatterPlottables)
-        bottom += - linewidth - selectionWidth
-        self.scatterSelectionAxe = self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
-        self.scatterSelectionAxe.set_title('Données :')
-        labels = [label for label in self.scatterPlottables]
-        if len(labels):
-            self.scatterSelectionButton= pltwid.CheckButtons(ax=self.scatterSelectionAxe,labels=labels)
-        else:
-            self.scatterSelectionButton=None
-        def scatterButtonClick(label):
-            if label in self.scatterPlottables:
-                self.currentPlot.switchScatter(self.scatterPlottables[label])
-                self.fig.canvas.draw()
+            try:
+                self.scatterSelectionButton.on_clicked(scatterButtonClick)
+            except:
+                pass
+        #=================================ADD THE CUSTOM PLOTTABLES===============
+        if not self.currentPlot.state3D:
+            for custom in self.customPlottables.values():
+                selectionWidth = linewidth
+                bottom += -linewidth
+                ax = self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
+                button = custom.refreshButtonFunc(ax=ax)#TODO : HERE add all intersting context !
+                if custom.label not in self.currentPlot.customPlottableData:
+                    self.currentPlot.customPlottableData[custom.label]=[]
+                def redirectToOnChangeFunc(data,custom=custom): 
+                    #Here the custom=custom is to force function closure to de-reference the custom value here (before the next loop iteration)
+                    #Note that self is put in the closure after but it doesn’t matter much
+                    custom.onChangeFunc(customPlottedData=self.currentPlot.customPlottableData[custom.label],ax=self.currentPlot.Ax,hyperPlotter=self,data=data) # TODO : Here add all relevant data
+                    self.fig.canvas.draw()
 
-        try:
-            self.scatterSelectionButton.on_clicked(scatterButtonClick)
-        except:
-            pass
-
-        for custom in self.customPlottables.values():
-            selectionWidth = linewidth
-            bottom += -linewidth
-            ax = self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
-            button = custom.refreshButtonFunc(ax=ax)#TODO : HERE add all intersting context !
-            if custom.label not in self.currentPlot.customPlottableData:
-                self.currentPlot.customPlottableData[custom.label]=[]
-            def redirectToOnChangeFunc(data,custom=custom): 
-                #Here the custom=custom is to force function closure to de-reference the custom value here (before the next loop iteration)
-                #Note that self is put in the closure after but it doesn’t matter much
-                custom.onChangeFunc(customPlottedData=self.currentPlot.customPlottableData[custom.label],ax=self.currentPlot.Ax2d,data=data) # TODO : Here add all relevant data
-                self.fig.canvas.draw()
-
-            match custom.type:
-                case 'button' | 'checkButton':
-                    button.on_clicked(redirectToOnChangeFunc)
-            self.customSelectionAxes.append(ax)
-            self.customSelectionButtons.append(button) 
+                match custom.type:
+                    case 'button' | 'checkButton':
+                        button.on_clicked(redirectToOnChangeFunc)
+                self.customSelectionAxes.append(ax)
+                self.customSelectionButtons.append(button) 
+        #=================================ADD THE DIMENSION BUTTON===============
+        selectionWidth = linewidth
+        bottom += -linewidth
+        self.dimSelectionAxe= self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
+        self.dimSelectionButton=pltwid.Button(ax=self.dimSelectionAxe,label='Switch 2D/3D')
+        def dimButtonClick(label):
+            self.currentPlot.state3D=not self.currentPlot.state3D
+            self.refreshMenu()
+            self.fig.canvas.draw()
+        self.dimSelectionButton.on_clicked(dimButtonClick)
     
 
         
