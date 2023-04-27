@@ -79,6 +79,8 @@ class Plot():
                 self.MainImage.set_clim(vmin=np.min(np.nan_to_num(newMap.data)),vmax=np.max(np.nan_to_num(newMap.data)))
                 self.MainImage.set_cmap('viridis')
         self.colorbar.set_label(newMap.cblabel)
+        percentiles = np.nanpercentile(newMap.data,[0,5,50,95,100])
+        self.colorbar.add_lines(levels=percentiles,colors=['red','black','black','black','red'],linewidths=[1,1,2,1,1])
     
     def switchScatter(self,scatter:ScatterPlottable):
         if self.state3D:
