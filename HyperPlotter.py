@@ -88,7 +88,10 @@ class HyperPlotter():
         self.scatterSelectionButton=None
         self.dimSelectionButton=None
 
-        totalLinesNumber=len(self.mapPlottables)+len(self.scatterPlottables)*(not self.currentPlot.state3D)+len(self.customPlottables)*(not self.currentPlot.state3D)+3+1 #3 Titles to add 1 dim button
+        totalLinesNumber=(len(self.mapPlottables) 
+                        +len(self.scatterPlottables)*(not self.currentPlot.state3D) 
+                        +len([True for custom in self.customPlottables.values() if custom.isActive(self.currentPlot.state3D)]) 
+                        +3+1) #3 Titles to add 1 dim button
         linewidth=1/totalLinesNumber
 
         menucolor = 'lightgoldenrodyellow'
@@ -100,9 +103,15 @@ class HyperPlotter():
         labels = [label for label in self.mapPlottables]
         if len(labels):
             try:
-                active=labels.index(self.currentPlot.stateMapPlottable) #Here we assume the state has been set correctly
+                if self.currentPlot.state3D:
+                    active=labels.index(self.currentPlot.state3DMapPlottable) #Here we assume the state has been set correctly
+                else:
+                    active=labels.index(self.currentPlot.stateMapPlottable) #Here we assume the state has been set correctly
             except ValueError: #If not set then we set it !
-                self.currentPlot.stateMapPlottable=labels[0]
+                if self.currentPlot.state3D:
+                    self.currentPlot.state3DMapPlottable=labels[0]
+                else:
+                    self.currentPlot.stateMapPlottable=labels[0]
                 active=0
             self.mapSelectionButton = pltwid.RadioButtons(ax=self.mapSelectionAxe,labels=labels,active=active)
         else :
@@ -138,8 +147,9 @@ class HyperPlotter():
             except:
                 pass
         #=================================ADD THE CUSTOM PLOTTABLES===============
-        if not self.currentPlot.state3D:
-            for custom in self.customPlottables.values():
+
+        for custom in self.customPlottables.values():
+            if custom.isActive(self.currentPlot.state3D):
                 selectionWidth = linewidth
                 bottom += -linewidth
                 ax = self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
@@ -165,6 +175,7 @@ class HyperPlotter():
         def dimButtonClick(label):
             self.currentPlot.state3D=not self.currentPlot.state3D
             self.refreshMenu()
+            self.currentPlot.updateDim()
             self.fig.canvas.draw()
         self.dimSelectionButton.on_clicked(dimButtonClick)
     
