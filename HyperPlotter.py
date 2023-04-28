@@ -67,7 +67,14 @@ class HyperPlotter():
                 print(plottable, 'does not seem to be plottable')
                 raise TypeError
     
-
+    def runPlottable(self,label,**data):
+        if label in self.mapPlottables:
+            self.currentPlot.setNewMap(self.mapPlottables[label])
+        elif label in self.scatterPlottables:
+            self.currentPlot.switchScatter(self.scatterPlottables[label])
+        elif label in self.customPlottables:
+            custom = self.customPlottables[label]
+            custom.onChangeFunc(ax=self.currentPlot.Ax,hyperPlotter=self,data=data) # TODO : Here add all relevant data
     
     def refreshMenu(self):
         #**********************REMOVE THE MENU**********************************
@@ -112,6 +119,7 @@ class HyperPlotter():
                     self.currentPlot.state3DMapPlottable=labels[0]
                 else:
                     self.currentPlot.stateMapPlottable=labels[0]
+                self.currentPlot.setNewMap(self.mapPlottables[labels[0]])
                 active=0
             self.mapSelectionButton = pltwid.RadioButtons(ax=self.mapSelectionAxe,labels=labels,active=active)
         else :
@@ -153,13 +161,11 @@ class HyperPlotter():
                 selectionWidth = linewidth
                 bottom += -linewidth
                 ax = self.menufig.add_axes([0.,bottom,1.,selectionWidth],facecolor=menucolor)
-                button = custom.refreshButtonFunc(ax=ax)#TODO : HERE add all intersting context !
-                if custom.label not in self.currentPlot.customPlottableData:
-                    self.currentPlot.customPlottableData[custom.label]=[]
+                button = custom.refreshButtonFunc(ax=ax,hyperPlotter=self)#TODO : HERE add all intersting context !
                 def redirectToOnChangeFunc(data,custom=custom): 
                     #Here the custom=custom is to force function closure to de-reference the custom value here (before the next loop iteration)
                     #Note that self is put in the closure after but it doesn’t matter much
-                    custom.onChangeFunc(customPlottedData=self.currentPlot.customPlottableData[custom.label],ax=self.currentPlot.Ax,hyperPlotter=self,data=data) # TODO : Here add all relevant data
+                    custom.onChangeFunc(ax=self.currentPlot.Ax,hyperPlotter=self,data=data) # TODO : Here add all relevant data
                     self.fig.canvas.draw()
 
                 match custom.type:

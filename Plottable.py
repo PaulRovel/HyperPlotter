@@ -35,11 +35,13 @@ class CustomPlottable():
         CustomPlottable.maxId+=1
         self.onChangeFunc=onChangeFunc
         def standardRefreshButton(ax,**args):
+            hyperPlt = args['hyperPlotter']
             match self.type:
                 case 'button':
                     return pltwid.Button(ax=ax,label=self.label)
                 case 'checkButton':
-                    return pltwid.CheckButtons(ax=ax,labels=[self.label])
+                    active = self.label in hyperPlt.currentPlot.stateCustomPlottable
+                    return pltwid.CheckButtons(ax=ax,labels=[self.label],actives=[active])
         if refreshButton==None:
             refreshButton=standardRefreshButton
         self.refreshButtonFunc=refreshButton
@@ -56,17 +58,19 @@ class CustomDisplayPlottable(CustomPlottable): #A Custom plottable that can disp
     def __init__(self,label='',drawFunc=lambda **args:None,in3d=False):
         def onChangeFunc(**args):
             ax = args['ax']
-            data = args['customPlottedData']
-            if len(data): #there are elements on the list --» we need to erase
-                while len(data):
-                    data.pop().remove() #Erase the element that had been drawn
-            else: #no elements on list --» create them
+            data = args['hyperPlotter'].currentPlot.stateCustomPlottable
+            if self.label in data: #there is an entry for our name on the dict --» we need to erase its content
+                for item in data[self.label]:
+                    item.remove() #Erase the element that had been drawn
+                del data[self.label] #delete the entry for our name
+            else: #no entry --» create it
+                data[self.label]=[]
                 initialChildList = ax.get_children()
                 drawFunc(ax=ax)
                 newChildList = ax.get_children()
                 for element in newChildList:
                     if element not in initialChildList:
-                        data.append(element)
+                        data[self.label].append(element)
         if in3d:
             activein = '3d'
         else:
