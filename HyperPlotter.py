@@ -8,9 +8,12 @@ from .Plottable import *
 from .Plot import *
 
 
+
 class HyperPlotter():
-    def __init__(self,defaultExtent=(0.,1.,0.,1)):
+    def __init__(self,defaultExtent=(0.,1.,0.,1),xlabel='x',ylabel='y'):
         self.defaultExtent=defaultExtent
+        self.xlabel=xlabel
+        self.ylabel=ylabel
         self.fig=plt.figure()
         self.menufig,self.plotfig=self.fig.subfigures(1,2,width_ratios=(3,7))
         self.mapPlottables:dict[str,MapPlottable]={}
@@ -32,7 +35,7 @@ class HyperPlotter():
 
     
     def addPlot(self):
-        self.plots.append(Plot(self,len(self.plots)))
+        self.plots.append(Plot(self,len(self.plots),xlabel=self.xlabel,ylabel=self.ylabel))
         self.currentPlot=self.plots[-1]
     
     def addMapPlottable(self,newMap:MapPlottable):

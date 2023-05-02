@@ -5,7 +5,6 @@ import matplotlib.axes
 import mpl_toolkits.mplot3d.axes3d
 import matplotlib.colorbar
 from matplotlib import cm
-from .HyperPlotter import *
 
 from .Plottable import *
 
@@ -19,7 +18,7 @@ class Plot():
         
         self.plotIndex=plotIndex
         self.extent=hyperPlotter.defaultExtent
-        self.hyperPlotter:HyperPlotter = hyperPlotter
+        self.hyperPlotter = hyperPlotter
 
         self.Ax2d:matplotlib.axes.Axes=hyperPlotter.plotfig.add_subplot()
         self.Ax3d:mpl_toolkits.mplot3d.axes3d.Axes3D=hyperPlotter.plotfig.add_subplot(projection='3d')
@@ -78,15 +77,17 @@ class Plot():
             else:
                 self.MainImage.set_clim(vmin=np.min(np.nan_to_num(newMap.data)),vmax=np.max(np.nan_to_num(newMap.data)))
                 self.MainImage.set_cmap('viridis')
-        self.refreshColorbar()
+        self.refreshColorbar(currentMap=newMap)
         
-    def refreshColorbar(self):
+    def refreshColorbar(self,currentMap=None):
         if self.state3D:
             self.colorbar.update_normal(self.MainSurf)
-            currentMap:MapPlottable=self.hyperPlotter.mapPlottables[self.state3DMapPlottable]
+            if type(currentMap)==type(None):
+                currentMap:MapPlottable=self.hyperPlotter.mapPlottables[self.state3DMapPlottable]
         else:
             self.colorbar.update_normal(self.MainImage)
-            currentMap:MapPlottable=self.hyperPlotter.mapPlottables[self.stateMapPlottable]
+            if type(currentMap)==type(None):
+                currentMap:MapPlottable=self.hyperPlotter.mapPlottables[self.stateMapPlottable]
         self.colorbar.set_label(currentMap.cblabel)
         percents=[0,5,50,95,100]
         percentiles = np.nanpercentile(currentMap.data,percents)
