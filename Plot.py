@@ -64,6 +64,7 @@ class Plot():
             else:
                 self.MainSurf = self.Ax3d.plot_surface(X,Y,newMap.data,cmap='viridis',vmin=np.min(np.nan_to_num(newMap.data)),vmax=np.max(np.nan_to_num(newMap.data)))
             self.Ax3d.autoscale(enable=True)
+            self.Ax3d.set_title(newMap.title)
         else:
             self.MainImage.set(data=np.flip(newMap.data.T,axis=0))
             self.stateMapPlottable=newMap.label
